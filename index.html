@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trade Risk Manager</title>
+<title>Trade Risk Manager V2.0</title>
 
 <style>
 * {
@@ -15,8 +15,8 @@
 body {
     font-family: Arial, sans-serif;
     background: #101827;
-    color: white;
-    padding: 20px;
+    color: #fff;
+    padding: 18px;
 }
 
 .container {
@@ -26,12 +26,12 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 25px;
+    margin: 15px 0 25px;
 }
 
 header h1 {
     color: #e8b44c;
-    font-size: 27px;
+    font-size: 26px;
 }
 
 header p {
@@ -41,22 +41,22 @@ header p {
 
 .card {
     background: #1b2638;
-    padding: 22px;
-    border-radius: 14px;
+    padding: 20px;
+    border-radius: 13px;
     margin-bottom: 18px;
 }
 
 h2 {
-    font-size: 17px;
     color: #e8b44c;
-    margin-bottom: 18px;
+    font-size: 17px;
+    margin-bottom: 15px;
 }
 
 label {
     display: block;
     margin: 13px 0 7px;
-    color: #dce3ed;
     font-size: 14px;
+    color: #dce3ed;
 }
 
 input, select {
@@ -66,27 +66,35 @@ input, select {
     border: 1px solid #34445d;
     border-radius: 8px;
     color: white;
-    font-size: 15px;
+    font-size: 16px;
 }
 
 button {
-    width: 100%;
-    padding: 14px;
+    padding: 13px;
     border: none;
     border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.direction {
+    display: flex;
+    gap: 10px;
+}
+
+.direction button {
+    flex: 1;
+    background: #101827;
+    color: white;
+    border: 1px solid #34445d;
+}
+
+.direction button.active {
     background: #e8b44c;
     color: #101827;
-    font-weight: bold;
-    font-size: 16px;
-    margin-top: 20px;
-    cursor: pointer;
 }
 
-button:hover {
-    background: #f5c96b;
-}
-
-.result {
+.grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
@@ -94,43 +102,64 @@ button:hover {
 
 .box {
     background: #101827;
-    padding: 15px;
+    padding: 14px;
     border-radius: 9px;
+    min-width: 0;
 }
 
 .box small {
-    color: #aab4c5;
     display: block;
+    color: #aab4c5;
     margin-bottom: 8px;
+    font-size: 12px;
 }
 
 .box strong {
-    font-size: 20px;
+    font-size: 19px;
+    overflow-wrap: anywhere;
 }
 
-.green {
-    color: #36d399;
+.green { color: #36d399; }
+.red { color: #ff6b6b; }
+.gold { color: #e8b44c; }
+
+.highlight {
+    background: #101827;
+    border: 1px solid #e8b44c;
+    padding: 17px;
+    border-radius: 9px;
+    margin-top: 15px;
 }
 
-.red {
-    color: #ff6b6b;
-}
-
-.gold {
+.highlight strong {
+    display: block;
     color: #e8b44c;
+    font-size: 25px;
+    margin-top: 7px;
+}
+
+.note {
+    color: #aab4c5;
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 12px;
 }
 
 #message {
-    margin-top: 15px;
-    color: #ff9c9c;
+    margin-top: 12px;
     font-size: 13px;
+    color: #36d399;
 }
 
 footer {
     text-align: center;
     color: #8290a5;
     font-size: 12px;
-    margin-top: 25px;
+    margin: 25px 0;
+}
+
+@media(max-width:380px) {
+    .grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -145,158 +174,264 @@ footer {
 </header>
 
 <div class="card">
-    <h2>01 — Paramètres du compte</h2>
 
-    <label>Capital du compte ($)</label>
-    <input type="number" id="capital" value="100" min="0">
+<h2>01 — Paramètres du compte</h2>
 
-    <label>Risque par trade (%)</label>
-    <input type="number" id="risk" value="1" min="0" max="100" step="0.1">
+<label>Capital du compte ($)</label>
+<input type="number" id="capital" value="100" min="0" step="any">
 
-    <label>Type de position</label>
-    <select id="position">
-        <option value="BUY">BUY (Achat)</option>
-        <option value="SELL">SELL (Vente)</option>
-    </select>
+<label>Montant maximal à perdre ($)</label>
+<input type="number" id="riskMoney" value="5" min="0" step="any">
+
+<label>Direction du trade</label>
+
+<div class="direction">
+    <button type="button" id="buy" class="active">BUY</button>
+    <button type="button" id="sell">SELL</button>
+</div>
+
+<label>Prix d'entrée</label>
+<input type="number" id="entry" value="4000" min="0" step="any">
+
 </div>
 
 <div class="card">
-    <h2>02 — Paramètres du trade</h2>
 
-    <label>Prix d'entrée</label>
-    <input type="number" id="entry" value="4000" step="any">
+<h2>02 — Calcul du Stop Loss</h2>
 
-    <label>Stop Loss</label>
-    <input type="number" id="sl" value="3990" step="any">
+<label>Volume (lot)</label>
+<input type="number" id="lot" value="0.01" min="0" step="any">
 
-    <label>Take Profit</label>
-    <input type="number" id="tp" value="4020" step="any">
+<label>Valeur du mouvement ($ / unité / lot)</label>
+<input type="number" id="unit" value="1" min="0" step="any">
 
-    <label>Valeur monétaire par unité de mouvement pour 1 lot ($)</label>
-    <input type="number" id="value" value="1" min="0" step="any">
+<div class="highlight">
+    Stop Loss calculé automatiquement
+    <strong id="sl">3500.00</strong>
+    <p class="note" id="distance">Distance : 500 unités</p>
+</div>
 
-    <button onclick="calculate()">CALCULER MON RISQUE</button>
+<p class="note">
+Le Stop Loss est calculé à partir du prix d'entrée,
+du volume et de la perte maximale acceptée.
+</p>
 
-    <p id="message"></p>
 </div>
 
 <div class="card">
-    <h2>03 — Résultats de l'analyse</h2>
 
-    <div class="result">
+<h2>03 — Objectif de gain</h2>
 
-        <div class="box">
-            <small>Montant risqué</small>
-            <strong class="red" id="riskAmount">0 $</strong>
-        </div>
+<label>Ratio Risk/Reward souhaité</label>
+<input type="number" id="rrInput" value="2" min="0.01" step="any">
 
-        <div class="box">
-            <small>Gain potentiel</small>
-            <strong class="green" id="profit">0 $</strong>
-        </div>
+<div class="grid">
 
-        <div class="box">
-            <small>Ratio Risk/Reward</small>
-            <strong class="gold" id="rr">0</strong>
-        </div>
-
-        <div class="box">
-            <small>Taille de position</small>
-            <strong id="lot">0 lot</strong>
-        </div>
-
-        <div class="box">
-            <small>Capital après perte</small>
-            <strong class="red" id="afterLoss">0 $</strong>
-        </div>
-
-        <div class="box">
-            <small>Capital après gain</small>
-            <strong class="green" id="afterWin">0 $</strong>
-        </div>
-
+    <div class="box">
+        <small>Take Profit calculé</small>
+        <strong class="green" id="tp">5000.00</strong>
     </div>
+
+    <div class="box">
+        <small>Gain potentiel</small>
+        <strong class="green" id="gain">10.00 $</strong>
+    </div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>04 — Résumé du trade</h2>
+
+<div class="grid">
+
+    <div class="box">
+        <small>Perte maximale</small>
+        <strong class="red" id="loss">5.00 $</strong>
+    </div>
+
+    <div class="box">
+        <small>Risque du capital</small>
+        <strong class="gold" id="riskPct">5.00 %</strong>
+    </div>
+
+    <div class="box">
+        <small>Capital après perte</small>
+        <strong class="red" id="afterLoss">95.00 $</strong>
+    </div>
+
+    <div class="box">
+        <small>Capital après gain</small>
+        <strong class="green" id="afterWin">110.00 $</strong>
+    </div>
+
+</div>
+
+<p id="message">Calcul automatique activé.</p>
+
+</div>
+
+<div class="card">
+<h2>05 — Informations techniques</h2>
+
+<p class="note">
+La valeur du mouvement par lot doit correspondre
+aux spécifications contractuelles de ton courtier.
+
+Les commissions, swaps et slippages ne sont pas inclus.
+Les résultats sont des estimations théoriques.
+</p>
+
 </div>
 
 <footer>
-    TRADE RISK MANAGER — Version 1.0
-    <br>Outil éducatif de gestion du risque.
+TRADE RISK MANAGER — VERSION 2.0
+<br>
+Gestion intelligente du risque de trading
 </footer>
 
 </div>
 
 <script>
 
+let direction = "BUY";
+
+const $ = id => document.getElementById(id);
+
+function format(number) {
+    return number.toLocaleString("fr-FR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
 function calculate() {
 
-    const capital = parseFloat(document.getElementById("capital").value);
-    const risk = parseFloat(document.getElementById("risk").value);
-    const entry = parseFloat(document.getElementById("entry").value);
-    const sl = parseFloat(document.getElementById("sl").value);
-    const tp = parseFloat(document.getElementById("tp").value);
-    const value = parseFloat(document.getElementById("value").value);
-    const position = document.getElementById("position").value;
+    const capital = parseFloat($("capital").value);
+    const riskMoney = parseFloat($("riskMoney").value);
+    const entry = parseFloat($("entry").value);
+    const lot = parseFloat($("lot").value);
+    const unit = parseFloat($("unit").value);
+    const rr = parseFloat($("rrInput").value);
 
-    const message = document.getElementById("message");
+    const values = [capital, riskMoney, entry, lot, unit, rr];
 
-    const values = [capital, risk, entry, sl, tp, value];
+    if (
+        values.some(v => !Number.isFinite(v)) ||
+        capital <= 0 ||
+        riskMoney <= 0 ||
+        riskMoney > capital ||
+        entry <= 0 ||
+        lot <= 0 ||
+        unit <= 0 ||
+        rr <= 0
+    ) {
+        $("message").textContent =
+            "Erreur : vérifie les valeurs saisies.";
 
-    if (values.some(v => !Number.isFinite(v)) ||
-        capital <= 0 || risk <= 0 || risk > 100 ||
-        entry <= 0 || sl <= 0 || tp <= 0 || value <= 0) {
-
-        message.textContent = "Veuillez vérifier les valeurs saisies.";
         return;
     }
 
-    let stopDistance;
-    let targetDistance;
+    // Calcul de la distance du Stop Loss
 
-    if (position === "BUY") {
-        stopDistance = entry - sl;
-        targetDistance = tp - entry;
+    const distance = riskMoney / (lot * unit);
+
+    let sl;
+    let tp;
+
+    if (direction === "BUY") {
+
+        sl = entry - distance;
+        tp = entry + (distance * rr);
+
     } else {
-        stopDistance = sl - entry;
-        targetDistance = entry - tp;
+
+        sl = entry + distance;
+        tp = entry - (distance * rr);
+
     }
 
-    if (stopDistance <= 0 || targetDistance <= 0) {
-        message.textContent =
-            "Erreur : vérifiez la position de votre Stop Loss et Take Profit.";
+    if (sl <= 0 || tp <= 0) {
+
+        $("message").textContent =
+            "Erreur : prix calculé invalide.";
+
         return;
+
     }
 
-    const riskAmount = capital * (risk / 100);
+    const potentialGain = riskMoney * rr;
 
-    const lot = riskAmount / (stopDistance * value);
+    const riskPercentage = (riskMoney / capital) * 100;
 
-    const profit = targetDistance * lot * value;
+    const afterLoss = capital - riskMoney;
 
-    const rr = targetDistance / stopDistance;
+    const afterWin = capital + potentialGain;
 
-    const afterLoss = capital - riskAmount;
-    const afterWin = capital + profit;
+    // Actualisation automatique des résultats
 
-    document.getElementById("riskAmount").textContent =
-        riskAmount.toFixed(2) + " $";
+    $("sl").textContent = format(sl);
 
-    document.getElementById("profit").textContent =
-        profit.toFixed(2) + " $";
+    $("distance").textContent =
+        "Distance : " + format(distance) + " unités de prix";
 
-    document.getElementById("rr").textContent =
-        "1 : " + rr.toFixed(2);
+    $("tp").textContent = format(tp);
 
-    document.getElementById("lot").textContent =
-        lot.toFixed(3) + " lot";
+    $("gain").textContent =
+        format(potentialGain) + " $";
 
-    document.getElementById("afterLoss").textContent =
-        afterLoss.toFixed(2) + " $";
+    $("loss").textContent =
+        format(riskMoney) + " $";
 
-    document.getElementById("afterWin").textContent =
-        afterWin.toFixed(2) + " $";
+    $("riskPct").textContent =
+        format(riskPercentage) + " %";
 
-    message.textContent = "Calcul effectué avec succès.";
+    $("afterLoss").textContent =
+        format(afterLoss) + " $";
+
+    $("afterWin").textContent =
+        format(afterWin) + " $";
+
+    $("message").textContent =
+        "✓ Calcul actualisé automatiquement.";
+
 }
+
+// Choix BUY / SELL
+
+$("buy").addEventListener("click", function() {
+
+    direction = "BUY";
+
+    $("buy").classList.add("active");
+    $("sell").classList.remove("active");
+
+    calculate();
+
+});
+
+$("sell").addEventListener("click", function() {
+
+    direction = "SELL";
+
+    $("sell").classList.add("active");
+    $("buy").classList.remove("active");
+
+    calculate();
+
+});
+
+// Mise à jour automatique à chaque modification
+
+document.querySelectorAll("input").forEach(input => {
+
+    input.addEventListener("input", calculate);
+
+});
+
+// Calcul initial
 
 calculate();
 
