@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Risk Manager</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #101827;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    max-width: 650px;
+    margin: auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+header h1 {
+    color: #e8b44c;
+    font-size: 27px;
+}
+
+header p {
+    color: #aab4c5;
+    margin-top: 8px;
+}
+
+.card {
+    background: #1b2638;
+    padding: 22px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+}
+
+h2 {
+    font-size: 17px;
+    color: #e8b44c;
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    margin: 13px 0 7px;
+    color: #dce3ed;
+    font-size: 14px;
+}
+
+input, select {
+    width: 100%;
+    padding: 13px;
+    background: #101827;
+    border: 1px solid #34445d;
+    border-radius: 8px;
+    color: white;
+    font-size: 15px;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: #e8b44c;
+    color: #101827;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #f5c96b;
+}
+
+.result {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.box {
+    background: #101827;
+    padding: 15px;
+    border-radius: 9px;
+}
+
+.box small {
+    color: #aab4c5;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.box strong {
+    font-size: 20px;
+}
+
+.green {
+    color: #36d399;
+}
+
+.red {
+    color: #ff6b6b;
+}
+
+.gold {
+    color: #e8b44c;
+}
+
+#message {
+    margin-top: 15px;
+    color: #ff9c9c;
+    font-size: 13px;
+}
+
+footer {
+    text-align: center;
+    color: #8290a5;
+    font-size: 12px;
+    margin-top: 25px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <h1>TRADE RISK MANAGER</h1>
+    <p>Maîtrise ton risque. Protège ton capital.</p>
+</header>
+
+<div class="card">
+    <h2>01 — Paramètres du compte</h2>
+
+    <label>Capital du compte ($)</label>
+    <input type="number" id="capital" value="100" min="0">
+
+    <label>Risque par trade (%)</label>
+    <input type="number" id="risk" value="1" min="0" max="100" step="0.1">
+
+    <label>Type de position</label>
+    <select id="position">
+        <option value="BUY">BUY (Achat)</option>
+        <option value="SELL">SELL (Vente)</option>
+    </select>
+</div>
+
+<div class="card">
+    <h2>02 — Paramètres du trade</h2>
+
+    <label>Prix d'entrée</label>
+    <input type="number" id="entry" value="4000" step="any">
+
+    <label>Stop Loss</label>
+    <input type="number" id="sl" value="3990" step="any">
+
+    <label>Take Profit</label>
+    <input type="number" id="tp" value="4020" step="any">
+
+    <label>Valeur monétaire par unité de mouvement pour 1 lot ($)</label>
+    <input type="number" id="value" value="1" min="0" step="any">
+
+    <button onclick="calculate()">CALCULER MON RISQUE</button>
+
+    <p id="message"></p>
+</div>
+
+<div class="card">
+    <h2>03 — Résultats de l'analyse</h2>
+
+    <div class="result">
+
+        <div class="box">
+            <small>Montant risqué</small>
+            <strong class="red" id="riskAmount">0 $</strong>
+        </div>
+
+        <div class="box">
+            <small>Gain potentiel</small>
+            <strong class="green" id="profit">0 $</strong>
+        </div>
+
+        <div class="box">
+            <small>Ratio Risk/Reward</small>
+            <strong class="gold" id="rr">0</strong>
+        </div>
+
+        <div class="box">
+            <small>Taille de position</small>
+            <strong id="lot">0 lot</strong>
+        </div>
+
+        <div class="box">
+            <small>Capital après perte</small>
+            <strong class="red" id="afterLoss">0 $</strong>
+        </div>
+
+        <div class="box">
+            <small>Capital après gain</small>
+            <strong class="green" id="afterWin">0 $</strong>
+        </div>
+
+    </div>
+</div>
+
+<footer>
+    TRADE RISK MANAGER — Version 1.0
+    <br>Outil éducatif de gestion du risque.
+</footer>
+
+</div>
+
+<script>
+
+function calculate() {
+
+    const capital = parseFloat(document.getElementById("capital").value);
+    const risk = parseFloat(document.getElementById("risk").value);
+    const entry = parseFloat(document.getElementById("entry").value);
+    const sl = parseFloat(document.getElementById("sl").value);
+    const tp = parseFloat(document.getElementById("tp").value);
+    const value = parseFloat(document.getElementById("value").value);
+    const position = document.getElementById("position").value;
+
+    const message = document.getElementById("message");
+
+    const values = [capital, risk, entry, sl, tp, value];
+
+    if (values.some(v => !Number.isFinite(v)) ||
+        capital <= 0 || risk <= 0 || risk > 100 ||
+        entry <= 0 || sl <= 0 || tp <= 0 || value <= 0) {
+
+        message.textContent = "Veuillez vérifier les valeurs saisies.";
+        return;
+    }
+
+    let stopDistance;
+    let targetDistance;
+
+    if (position === "BUY") {
+        stopDistance = entry - sl;
+        targetDistance = tp - entry;
+    } else {
+        stopDistance = sl - entry;
+        targetDistance = entry - tp;
+    }
+
+    if (stopDistance <= 0 || targetDistance <= 0) {
+        message.textContent =
+            "Erreur : vérifiez la position de votre Stop Loss et Take Profit.";
+        return;
+    }
+
+    const riskAmount = capital * (risk / 100);
+
+    const lot = riskAmount / (stopDistance * value);
+
+    const profit = targetDistance * lot * value;
+
+    const rr = targetDistance / stopDistance;
+
+    const afterLoss = capital - riskAmount;
+    const afterWin = capital + profit;
+
+    document.getElementById("riskAmount").textContent =
+        riskAmount.toFixed(2) + " $";
+
+    document.getElementById("profit").textContent =
+        profit.toFixed(2) + " $";
+
+    document.getElementById("rr").textContent =
+        "1 : " + rr.toFixed(2);
+
+    document.getElementById("lot").textContent =
+        lot.toFixed(3) + " lot";
+
+    document.getElementById("afterLoss").textContent =
+        afterLoss.toFixed(2) + " $";
+
+    document.getElementById("afterWin").textContent =
+        afterWin.toFixed(2) + " $";
+
+    message.textContent = "Calcul effectué avec succès.";
+}
+
+calculate();
+
+</script>
+
+</body>
+</html>
